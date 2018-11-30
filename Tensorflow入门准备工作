@@ -1,0 +1,25 @@
+# Tensorflow 入门准备工作
+## 注： 参考 http://www.cnblogs.com/yao62995/p/5773142.html
+
+# Topic content
+# 介绍
+# SWIG
+# bazel
+# EIGEN
+# protobuf
+# Stream Executor 
+# TF C++
+
+## 介绍
+** Tensorflow使用了自动化构建工具bazel、脚本语言调用c或cpp的包裹工具swig、使用EIGEN作为矩阵处理工具、Nvidia-cuBLAS GPU加速计算库、结构化数据存储格式protobuf **
+
+## SWIG
+- Simplified Wrapper and Interface Generator (SWIG) ，基本思想就是向脚本语言接口公开 C/C++ 代码。SWIG 允许您向广泛的脚本语言公开 C/C++ 代码，包括 Ruby、Perl、Tcl 和 Python。
+
+参考：
+1. 使用SWIG实现Python调用C/C++代码
+
+## bazel
+bazel假定每个目录为[package]单元，目录里面包含了源文件和一个描述文件BUILD，描述文件中指定了如何将源文件转换成构建的输出。
+![logo](bazel_01.png)
+![logo](bazel_02.png)
