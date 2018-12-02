@@ -1,0 +1,368 @@
+
+forked from tonussi/tutorial-tensorflow-geforce1050.md
+
+NVIDIA CUDA Enabled GPUS says that its not available to work with CUDA interface unto Geforce 1050 for laptops.
+Although, maybe they don't update the website so frequently as things get upgrades in terms of video cards and all.
+
+Here it are the steps to get everything working.
+
+In case you are installing tersorflow, with UEFI Secure Boot already enabled in your computer, because of Msoft
+Windows stuff.
+
+Install Ubuntu 16.04 LTS. Configuring Dual Boot if necessary. In the instalation, when the step for installing updates
+and third-party software comes, don't check those boxes, continue without them.
+
+Now, finish your ubuntu instalation. Reboot, and you should add nvidia ppa now
+
+```
+sudo add-apt-repository ppa:graphics-drivers/ppa
+sudo apt-get update
+```
+
+Now its an important moment, you can if you want install the most recent NVIDIA driver with CUDA support.
+
+Follow this tutorial, by NVIDIA http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html.
+
+To use CUDA on your system, you will need the following installed:
+
+1. CUDA-capable GPU
++ A supported version of Linux with a gcc compiler and toolchain
++ NVIDIA CUDA Toolkit (available at http://developer.nvidia.com/cuda-downloads)
+
+If some problem occur here you can safely do: `sudo apt purge nvidia*` and kind of reset the stage.
+
+`sudo apt install cuda`
+
+Because appears to be safer, but works with CUDA 9 and libcudnn7 as well.
+
+After installing cuda, Ubuntu will automatically download, install and activate the adictional driver NDIVIA to
+be able to access your GPU(s). After the instalation is complete it will ask you to put a password for the UEFI
+and will ask your to disable UEFI. Ubuntu is setting up a automatic phase that will be trigerred when you restart
+after the process of instalation is complete. You must restart your system then to complete the process.
+
+So, after installing the most updated NVIDIA driver you have to restart and disable the UEFI Secure Boot.
+
+At beginning of your system booting it will enter a blue screen, press enter and will give you options to
+Boot Normally, or Change Secure Boot State. Then, I recommend you to change the state to -> disable, using
+that method when the automatic screen that will appear because you just installed NVIDIA driver from your Ubuntu.
+
+UEFI must be disabled to install third-party software, and then that software, drivers, etc., will be able to access
+your Kernel (S. O.).
+
+I recommend installing cuda-8.0 with libcudnn6 as well. Go to https://developer.nvidia.com/cuda-80-ga2-download-archive
+and download the deb [local] (in the case of Ubuntu), download also cuBLAS Patch Update to CUDA 8 (Includes performance
+enhancements and bug-fixes). Okay, install it, and then you need to do `sudo apt update` and try to install the cuda-8.0
+(ga2) and its cuBLAS update.
+
+Install also cuDNN support by NVIDIA, https://developer.nvidia.com/rdp/cudnn-download. You have to sign into membership,
+its free to do that. Download the cuDNN version 6. So, now we have to add libraries to correct system variables, because
+tensorflow, and other libraries that have support for using GPU will try to load those drivers and libraries to be able
+to comunicate with GPU.
+
+Enter here https://developer.nvidia.com/rdp/cudnn-download and search your package (.run, .rpm, .deb, etc.) for your
+distribution (ubuntu, fedora, others...) and install it, then `sudo apt update` and then seek your package using
+`sudo apt install <name>` (use the help of tab completiong to list the packages).
+
+(Obs) If you chose to download a .tar.gz with the .so compressed and then, untar the compressing file. You will need to
+push these ones into the correct location. In Ubuntu I did these following steps:
+
+```
+sudo cp -P cuda/include/cudnn.h /usr/local/cuda-8.0/include
+sudo cp -P cuda/lib64/libcudnn* /usr/local/cuda-8.0/lib64/
+sudo chmod a+r /usr/local/cuda-8.0/lib64/libcudnn*
+```
+
+You could change 8.0 to another version, etc.
+
+If encounter some problem loading libnvidia-fatbinaryloader, or some other library then the cause could be
+you forgot something when configuring your sys. vars. or UEFI wans't disabled correctly.
+
+I also had to do sudo ln -s /usr/local/cuda-8.0/lib64/libcudnn.so.6.0.21 /usr/local/cuda-8.0/lib64/libcudnn.so.6.0
+when I tried to compile tensorflow natively, in order to allow a new tensorflow capable of using some instructions
+available by Intel i5 64 bits, i7 64 bits, etc. Of course, if you don't want to use GPU for some reason, tensorflow
+can use your CPU cores, and then it will try to use instructions for calculations.
+
+Your tensorflow will probably show you a message like this:
+
+> Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA.
+
+Which are sets of instructions, in other words, much more detail are involved within those sets. As you might think
+tensorflow tries to use the hardware to develop calculations, load data and distribute it for the calcultations, etc.
+And there are instructions that the be borrowed to do that stuff in an easier manner, so tensorflow (and other libraries)
+try to use them. If you have a tensorflow compiled to your target machine that you will be running tensorflow then its
+more probable that it will be able to reach more performance. Anyways, the kernel will help tensorflow somehow, to
+use instructions capable enough to calculate what you need (Considering CPU-based tensorflow, when GPU is involved there
+are other factors, other instructions involved, etc).
+
+SSE4.1: consists of 47 instructions that improve performance of media data manipulation:
+
++ 2 Dword multiply instructions
++ 2 Single- and double-precision dot product instructions
++ 1 streaming Load Hint Instruction
++ 6 packed blending instructions
++ 8 packed integer MIN/MAX instructions
++ 4 instructions used for rounding scalar, single and double-precision operands
++ 7 instructions used to simplify insertion and extractions data to/from XMM registers
++ 12 instructions used to convert packed integer data
++ 1 instruction that improves sum absolute difference for 4-byte blocks
++ 1 search instruction that determines value and location of minimum unsigned word in a block of 8 packed unsigned words
++ 1 packed test instruction
++ 1 128-bit packed qword equality test
++ 1 instruction used to pack pack dword to word with unsigned saturation
+
+SSE4.1 is only the first part of SSE4 instruction set. SSE4.1 was first introduced in Intel Penryn core in January 2008.
+The first AMD microprocessors with SSE 4.1 support were Bulldozer-based FX-Series and Opteron 6200. These families were
+released in October and November 2011 respectively.
+
+(Source: http://www.cpu-world.com/Glossary/S/SSE4.1.html).
+
+SSE4.2: consists of 7 instructions that improve performance of text processing and some application-specific operations:
+
++ 4 String and text processing instructions
++ 1 instruction used for comparison of packed integer quadwords
++ 2 application-targeted accelerator (ATA) instructions:
++ CRC32 - calculates cyclic redundancy check of a block of data
++ POPCNT - improves searching of bit patterns
+
+SSE4.2 is the second part of SSE4 instruction set. SSE4.2 was first introduced in Intel Nehalem core in November 2008.
+The first AMD CPUs with SSE 4.2 support were launched in October 2011. These processors used Bulldozer micro-architecture.
+
+(Source: http://www.cpu-world.com/Glossary/S/SSE4.2.html).
+
++ AVX: Intel® Advanced Vector Extensions (Intel® AVX) intrinsics map directly to Intel® AVX instructions and other
+enhanced 128-bit single-instruction multiple data processing (SIMD) instructions.
+
+(Source: https://software.intel.com/en-us/node/524040#580DBC71-EC92-4CA5-827F-8442F4961C4E).
+
++ AVX2: Intel® Advanced Vector Extensions 2 (Intel® AVX2) extends Intel® Advanced Vector Extensions (Intel® AVX) by
+promoting most of the 128-bit SIMD integer instructions with 256-bit numeric processing capabilities.
+
+(Source: https://software.intel.com/en-us/node/523876).
+
++ FMA: Fused Multiply-Add Instruction Set, is another Intel® package that implement many algorithms for
+
+If tensorflow can use this library, it will be capable to improve performance because of the optimizations that are
+given with vector multiplication, and dealing with IA there will be lots of vector multiplications.
+
+(Source: https://software.intel.com/en-us/node/523785).
+
+For more detail about precision when coding for deep learning applications and stuff alike, visit this article
+https://devblogs.nvidia.com/parallelforall/mixed-precision-programming-cuda-8/.
+
+The vital reason why tensorflow supports GPU acceleration is about the many cores it is capable of distributing
+your calculations. Tensorflow uses a graph paradigm to model your equations, calculations, etc., for making
+them as much parallel as possible. The Neural Networks created by tensorflow also involves many calculations,
+the training proccesses, fitness proccesses involves many calculations that follow patterns that tensorflow can
+map into these graphs and then use it to launch the CPU/GPU and calculate the graph in a parallel manner.
+
+I briefly explained that because the quantity of CUDA cores are important if you want more power calculating you
+neural network models. Visit https://www.nvidia.com/en-us/geforce/products/10series/compare/.
+
+Now add those libraries to the LD_LIBRARY_PATH and PATH system variables. Because tensorflow will try to access
+those variables. Actually, here http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html you will find
+more detailed explanations about how to configure those sys. vars.
+
+``` sh
+# GPU Installations (CUDA)
+export PATH=/usr/local/cuda-8.0/bin${PATH:+:${PATH}}
+export LD_LIBRARY_PATH=/usr/lib/nvidia-387${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+export LD_LIBRARY_PATH=/usr/local/cuda-8.0/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+export LD_LIBRARY_PATH=/usr/local/cuda-8.0/extras/CUPTI/lib64:$LD_LIBRARY_PATH
+export CUDA_HOME=/usr/local/cuda-8.0
+export CUDA_VISIBLE_DEVICES=0
+```
+
+The following comparison is a silly one, but helps you get the gesture about using GPU/CPU for Artificial Inteligence.
+Noticed that its being compared i5 64 bits quadcore 2.5 Ghz X Geforce GTX 1050 and it had some differences when computing
+neural network, with python 2.7 (managed by Anaconda) (source code: appended here). Just to mention, Python 3.4 was equally
+tested (but omitted here), but it worked similarly. This comparison is silly because it wasn't fairly compared, of course
+the difference is huge in terms of timing and then you can easily tell the difference, but cache helped a little bit when
+running for a second time with the GPU, after CPU ran. Although what is interesting is that Testing Accuracy for GPU eval
+got 86% since CPU got 89%.
+
+Get to know: https://www.nvidia.com/en-us/geforce/products/10series/compare/ about geforce family 10. Any video card from
+that family will work properly when coding for Artificial Inteligence stuff, the difference is that when you get more CUDA
+CORES you will get more performence doing it. Do check out the family 10 comparison charts, to learn about this family of
+video cards.
+
+______________________________________
+```
+2018-01-06 16:10:42.134804: W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use SSE4.1 instructions, but these are available on your machine and could speed up CPU computations.
+2018-01-06 16:10:42.134827: W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use SSE4.2 instructions, but these are available on your machine and could speed up CPU computations.
+2018-01-06 16:10:42.134851: W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use AVX instructions, but these are available on your machine and could speed up CPU computations.
+2018-01-06 16:10:42.134856: W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use AVX2 instructions, but these are available on your machine and could speed up CPU computations.
+2018-01-06 16:10:42.134863: W tensorflow/core/platform/cpu_feature_guard.cc:45] The TensorFlow library wasn't compiled to use FMA instructions, but these are available on your machine and could speed up CPU computations.
+2018-01-06 16:10:42.251797: I tensorflow/stream_executor/cuda/cuda_gpu_executor.cc:893] successful NUMA node read from SysFS had negative value (-1), but there must be at least one NUMA node, so returning NUMA node zero
+2018-01-06 16:10:42.252223: I tensorflow/core/common_runtime/gpu/gpu_device.cc:955] Found device 0 with properties: 
+name: GeForce GTX 1050
+major: 6 minor: 1 memoryClockRate (GHz) 1.493
+pciBusID 0000:01:00.0
+Total memory: 3.95GiB
+Free memory: 3.38GiB
+2018-01-06 16:10:42.252256: I tensorflow/core/common_runtime/gpu/gpu_device.cc:976] DMA: 0 
+2018-01-06 16:10:42.252262: I tensorflow/core/common_runtime/gpu/gpu_device.cc:986] 0:   Y 
+2018-01-06 16:10:42.252270: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1045] Creating TensorFlow device (/gpu:0) -> (device: 0, name: GeForce GTX 1050, pci bus id: 0000:01:00.0)
+Step 1, Minibatch Loss= 2.7008, Training Accuracy= 0.078
+Step 200, Minibatch Loss= 2.0899, Training Accuracy= 0.281
+Step 400, Minibatch Loss= 1.9454, Training Accuracy= 0.352
+Step 600, Minibatch Loss= 1.7031, Training Accuracy= 0.453
+...
+Step 9400, Minibatch Loss= 0.5180, Training Accuracy= 0.812
+Step 9600, Minibatch Loss= 0.4889, Training Accuracy= 0.836
+Step 9800, Minibatch Loss= 0.5071, Training Accuracy= 0.820
+Step 10000, Minibatch Loss= 0.4336, Training Accuracy= 0.891
+Optimization Finished!
+Testing Accuracy: 0.867188
+
+real 1m26.639s
+user m31.352s
+sys 0m3.636s
+```
+______________________________________
+```
+2018-01-06 15:55:09.652879: I tensorflow/core/platform/cpu_feature_guard.cc:137]
+Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+Step 1, Minibatch Loss= 2.7333, Training Accuracy= 0.102
+Step 200, Minibatch Loss= 2.1498, Training Accuracy= 0.305
+Step 400, Minibatch Loss= 2.0601, Training Accuracy= 0.273
+Step 600, Minibatch Loss= 1.8424, Training Accuracy= 0.422
+...
+Step 9400, Minibatch Loss= 0.5389, Training Accuracy= 0.805
+Step 9600, Minibatch Loss= 0.5007, Training Accuracy= 0.828
+Step 9800, Minibatch Loss= 0.5220, Training Accuracy= 0.852
+Step 10000, Minibatch Loss= 0.5304, Training Accuracy= 0.828
+Optimization Finished!
+Testing Accuracy: 0.898438
+
+real 7m5.066s
+user 21m24.076s
+sys 0m23.040s
+```
+______________________________________
+
+Of course this is a silly comparison, you can do richer comparisons by going to the professionals here
+https://www.spec.org/accel/results/accel.html or https://www.videocardbenchmark.net/, or any other that
+you prefer.
+
+Code for testing:
+
+``` py
+""" Recurrent Neural Network.
+
+A Recurrent Neural Network (LSTM) implementation example using TensorFlow library.
+This example is using the MNIST database of handwritten digits (http://yann.lecun.com/exdb/mnist/)
+
+Links:
+    [Long Short Term Memory](http://deeplearning.cs.cmu.edu/pdfs/Hochreiter97_lstm.pdf)
+    [MNIST Dataset](http://yann.lecun.com/exdb/mnist/).
+
+Author: Aymeric Damien
+Project: https://github.com/aymericdamien/TensorFlow-Examples/
+"""
+
+from __future__ import print_function
+
+import tensorflow as tf
+from tensorflow.contrib import rnn
+
+# Import MNIST data
+from tensorflow.examples.tutorials.mnist import input_data
+mnist = input_data.read_data_sets("/tmp/data/", one_hot=True)
+
+'''
+To classify images using a recurrent neural network, we consider every image
+row as a sequence of pixels. Because MNIST image shape is 28*28px, we will then
+handle 28 sequences of 28 steps for every sample.
+'''
+
+# Training Parameters
+learning_rate = 0.001
+training_steps = 10000
+batch_size = 128
+display_step = 200
+
+# Network Parameters
+num_input = 28 # MNIST data input (img shape: 28*28)
+timesteps = 28 # timesteps
+num_hidden = 128 # hidden layer num of features
+num_classes = 10 # MNIST total classes (0-9 digits)
+
+# tf Graph input
+X = tf.placeholder("float", [None, timesteps, num_input])
+Y = tf.placeholder("float", [None, num_classes])
+
+# Define weights
+weights = {
+    'out': tf.Variable(tf.random_normal([num_hidden, num_classes]))
+}
+biases = {
+    'out': tf.Variable(tf.random_normal([num_classes]))
+}
+
+
+def RNN(x, weights, biases):
+
+    # Prepare data shape to match `rnn` function requirements
+    # Current data input shape: (batch_size, timesteps, n_input)
+    # Required shape: 'timesteps' tensors list of shape (batch_size, n_input)
+
+    # Unstack to get a list of 'timesteps' tensors of shape (batch_size, n_input)
+    x = tf.unstack(x, timesteps, 1)
+
+    # Define a lstm cell with tensorflow
+    lstm_cell = rnn.BasicLSTMCell(num_hidden, forget_bias=1.0)
+
+    # Get lstm cell output
+    outputs, states = rnn.static_rnn(lstm_cell, x, dtype=tf.float32)
+
+    # Linear activation, using rnn inner loop last output
+    return tf.matmul(outputs[-1], weights['out']) + biases['out']
+
+logits = RNN(X, weights, biases)
+prediction = tf.nn.softmax(logits)
+
+# Define loss and optimizer
+loss_op = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
+    logits=logits, labels=Y))
+optimizer = tf.train.GradientDescentOptimizer(learning_rate=learning_rate)
+train_op = optimizer.minimize(loss_op)
+
+# Evaluate model (with test logits, for dropout to be disabled)
+correct_pred = tf.equal(tf.argmax(prediction, 1), tf.argmax(Y, 1))
+accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+
+# Initialize the variables (i.e. assign their default value)
+init = tf.global_variables_initializer()
+
+# Start training
+with tf.Session() as sess:
+
+    # Run the initializer
+    sess.run(init)
+
+    for step in range(1, training_steps+1):
+        batch_x, batch_y = mnist.train.next_batch(batch_size)
+        # Reshape data to get 28 seq of 28 elements
+        batch_x = batch_x.reshape((batch_size, timesteps, num_input))
+        # Run optimization op (backprop)
+        sess.run(train_op, feed_dict={X: batch_x, Y: batch_y})
+        if step % display_step == 0 or step == 1:
+            # Calculate batch loss and accuracy
+            loss, acc = sess.run([loss_op, accuracy], feed_dict={X: batch_x,
+                                                                 Y: batch_y})
+            print("Step " + str(step) + ", Minibatch Loss= " + \
+                  "{:.4f}".format(loss) + ", Training Accuracy= " + \
+                  "{:.3f}".format(acc))
+
+    print("Optimization Finished!")
+
+    # Calculate accuracy for 128 mnist test images
+    test_len = 128
+    test_data = mnist.test.images[:test_len].reshape((-1, timesteps, num_input))
+    test_label = mnist.test.labels[:test_len]
+    print("Testing Accuracy:", \
+        sess.run(accuracy, feed_dict={X: test_data, Y: test_label}))
+```
+
+This tutorial/explanation is Copyleft 2018.
+https://twitter.com/lpton.
