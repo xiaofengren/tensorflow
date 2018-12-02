@@ -366,3 +366,15 @@ with tf.Session() as sess:
 
 This tutorial/explanation is Copyleft 2018.
 https://twitter.com/lpton.
+
+I have a Windows 10 laptop with a GEFORCE GTX 1050. On the NVIDIA developers site it is NOT listed as being supported by the CUDA tools, and therefore, I first assumed, I would not be ble to run GPU supported tensorflow on this machine. However that was a mistake: it is possible and the speed improvement is impressive.
+
+Download the CUDA 8.0 toolkit from https://developer.nvidia.com/cuda-downloads
+Install it, without the drivers, ignore the error message that says it does not see a supported GPU
+Also download and install the patch from the above website.
+Create a (free) developers account on the developers site.
+Download cudNN 6.0 after logging in. Also download the installtion guide.
+Copy the cudNN files to the location C:\Program Files\NVIDIA GPU
+Computing Toolkit\CUDA\v8.0
+Check whether the Path for CUDA has been set (see the installation guide if you do not know how to do that).
+That’s it. Very simple but it took me hours to figure out.
