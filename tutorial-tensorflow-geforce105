@@ -1,5 +1,5 @@
 
-forked from tonussi/tutorial-tensorflow-geforce1050.md
+> forked from tonussi/tutorial-tensorflow-geforce1050.md
 
 NVIDIA CUDA Enabled GPUS says that its not available to work with CUDA interface unto Geforce 1050 for laptops.
 Although, maybe they don't update the website so frequently as things get upgrades in terms of video cards and all.
